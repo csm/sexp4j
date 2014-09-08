@@ -2,8 +2,17 @@ package org.metastatic.sexp4j;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 
 public class Primitives {
+    public static byte[] bytes(String string, Charset charset) {
+        return string.getBytes(charset);
+    }
+
+    public static byte[] bytes(String string) {
+        return bytes(string, Charset.forName("UTF-8"));
+    }
+
     public static byte[] bytes(int value, ByteOrder order) {
         byte[] result = new byte[4];
         ByteBuffer.wrap(result).order(order).putInt(value);

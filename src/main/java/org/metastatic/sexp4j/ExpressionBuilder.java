@@ -9,6 +9,10 @@ public class ExpressionBuilder {
     private final LinkedList<ExpressionList> stack = new LinkedList<>();
     private Optional<Expression> first = Optional.empty();
 
+    public static ExpressionBuilder create() {
+        return new ExpressionBuilder();
+    }
+
     public Expression build() {
         if (first.isPresent()) {
             stack.clear();
