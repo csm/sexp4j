@@ -17,6 +17,12 @@ public class ExpressionList extends AbstractList<Expression> implements Expressi
         this.expressions = listClass.newInstance();
     }
 
+    public static ExpressionList list(Expression... expressions) {
+        ExpressionList list = new ExpressionList();
+        Collections.addAll(list, expressions);
+        return list;
+    }
+
     @Override
     public Expression get(int index) {
         return expressions.get(index);
