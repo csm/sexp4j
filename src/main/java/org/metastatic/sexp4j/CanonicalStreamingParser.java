@@ -27,6 +27,7 @@ public class CanonicalStreamingParser extends StreamingParser
                 int len = readLength(ch);
                 byte[] buffer = new byte[len];
                 ByteStreams.readFully(input, buffer);
+                onAtom(buffer);
             }
             else
                 throw new ParseException("invalid character in stream: %c", ch);

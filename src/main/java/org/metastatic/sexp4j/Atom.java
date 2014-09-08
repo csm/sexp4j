@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
 
-public class Atom extends Expression implements Cloneable
+public class Atom implements Cloneable, Expression
 {
     private final byte[] bytes;
 
@@ -12,6 +12,11 @@ public class Atom extends Expression implements Cloneable
     {
         Preconditions.checkNotNull(bytes);
         this.bytes = bytes.clone();
+    }
+
+    public int length()
+    {
+        return bytes.length;
     }
 
     public byte[] bytes()
@@ -37,7 +42,7 @@ public class Atom extends Expression implements Cloneable
     }
 
     @Override
-    protected Atom clone() throws CloneNotSupportedException
+    public Atom clone() throws CloneNotSupportedException
     {
         return (Atom) super.clone();
     }
