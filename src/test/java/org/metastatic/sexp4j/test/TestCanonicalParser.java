@@ -28,4 +28,14 @@ public class TestCanonicalParser {
         Assert.assertTrue(expr instanceof Atom);
         Assert.assertEquals(0, ((Atom) expr).length());
     }
+
+    @Test
+    public void testAtom2() throws IOException {
+        String input = "11:hello world";
+        Expression expr = new CanonicalParser(new ByteArrayInputStream(input.getBytes())).parse();
+        Assert.assertNotNull(expr);
+        Assert.assertTrue(expr instanceof Atom);
+        Assert.assertEquals(11, ((Atom) expr).length());
+        Assert.assertArrayEquals("hello world".getBytes("UTF-8"), ((Atom) expr).bytes());
+    }
 }
