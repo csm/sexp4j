@@ -17,7 +17,7 @@ public class CanonicalParser
         public void beginList() throws ParseException {
             ExpressionList newList = new ExpressionList();
             if (!stack.isEmpty())
-                stack.getLast().add(newList);
+                stack.peek().add(newList);
             else
             {
                 if (root.isPresent())
@@ -42,7 +42,7 @@ public class CanonicalParser
                 root = Optional.of(new Atom(atom));
             }
             else
-                stack.getLast().add(new Atom(atom));
+                stack.peek().add(new Atom(atom));
         }
     }
 
