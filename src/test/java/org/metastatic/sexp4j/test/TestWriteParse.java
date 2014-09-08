@@ -21,7 +21,7 @@ public class TestWriteParse {
         list2.add(new Atom("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33".getBytes()));
         list.add(list2);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CanonicalWriter writer = new CanonicalWriter(out);
+        Writer writer = new CanonicalWriter(out);
         writer.writeExpression(list);
         byte[] bytes = out.toByteArray();
         System.out.println("wrote bytes: " + new String(bytes));

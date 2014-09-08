@@ -14,6 +14,15 @@ public class Atom implements Cloneable, Expression
         this.bytes = bytes.clone();
     }
 
+    public Atom(byte[] bytes, int offset, int length)
+    {
+        Preconditions.checkNotNull(bytes);
+        Preconditions.checkArgument(offset > 0);
+        Preconditions.checkArgument(offset + length <= bytes.length);
+        this.bytes = new byte[length];
+        System.arraycopy(bytes, offset, this.bytes, 0, length);
+    }
+
     public int length()
     {
         return bytes.length;

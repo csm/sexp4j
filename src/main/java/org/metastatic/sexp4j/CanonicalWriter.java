@@ -6,7 +6,7 @@ import java.util.Locale;
 
 import com.google.common.base.Preconditions;
 
-public class CanonicalWriter {
+public class CanonicalWriter implements Writer {
     private final OutputStream out;
     private int listDepth = 0;
 
@@ -21,6 +21,7 @@ public class CanonicalWriter {
         this.out = out;
     }
 
+    @Override
     public int writeAtom(Atom atom) throws IOException {
         if (firstWrite == WriteType.Atom)
             throw new WriteException("already wrote an atom as the first value");
@@ -32,6 +33,7 @@ public class CanonicalWriter {
         return lengthTag.length + atom.length();
     }
 
+    @Override
     public int writeList(ExpressionList list) throws IOException {
         if (firstWrite == WriteType.Atom)
             throw new WriteException("already wrote an atom as the first value");
@@ -43,6 +45,7 @@ public class CanonicalWriter {
         return 2 + len;
     }
 
+    @Override
     public void beginList() throws IOException {
         if (firstWrite == WriteType.Atom)
             throw new WriteException("already wrote an atom as the first value");
@@ -52,6 +55,7 @@ public class CanonicalWriter {
         listDepth++;
     }
 
+    @Override
     public void endList() throws IOException {
         if (listDepth <= 0)
             throw new WriteException("can't end list, list not started");
@@ -59,6 +63,7 @@ public class CanonicalWriter {
         listDepth--;
     }
 
+    @Override
     public int writeExpression(Expression expression) throws IOException {
         Preconditions.checkNotNull(expression);
         if (expression instanceof Atom)
