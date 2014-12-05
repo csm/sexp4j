@@ -1,10 +1,15 @@
 package org.metastatic.sexp4j;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.BitSet;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Range;
 
 public class Atom implements Cloneable, Expression
 {
@@ -64,7 +69,68 @@ public class Atom implements Cloneable, Expression
 
     public byte[] bytes()
     {
-        return bytes;
+        return bytes.clone();
+    }
+
+    public void writeTo(OutputStream out, int offset, int length) throws IOException {
+        out.write(bytes, offset, length);
+    }
+
+    public void writeTo(OutputStream out) throws IOException {
+        out.write(bytes);
+    }
+
+    private static final BitSet symbolChars = new BitSet(256);
+    private static final BitSet quotedStringChars = new BitSet(256);
+
+    static {
+        symbolChars.set('a', 'z' + 1);
+        symbolChars.set('A', 'Z' + 1);
+        symbolChars.set('0', '9' + 1);
+
+        quotedStringChars.set(0x20);
+        quotedStringChars.set('!');
+        quotedStringChars.set('#', '~' + 1);
+    }
+
+    public boolean canBeSymbol() {
+        if (bytes.length == 0)
+            return false;
+        for (byte b : bytes) {
+            if (!symbolChars.get(b & 0xFF))
+                return false;
+        }
+        return true;
+    }
+
+    public boolean canBeQuotedString() {
+        for (byte b : bytes) {
+            if (!quotedStringChars.get(b & 0xff))
+                return false;
+        }
+        return true;
+    }
+
+    private byte hexByte(int i) {
+        if (i >= 0 && i < 10) {
+            return (byte) ('0' + i);
+        }
+        return (byte) ('a' + (i - 10));
+    }
+
+    public byte[] asHexBytes() {
+        byte[] result = new byte[bytes.length * 2];
+        int i = 0;
+        for (byte b : bytes) {
+            int x = b & 0xFF;
+            result[i++] = hexByte((x >> 4) & 0xf);
+            result[i++] = hexByte(x & 0xf);
+        }
+        return result;
+    }
+
+    public byte[] asBase64Bytes() {
+        return Base64.getEncoder().encode(bytes);
     }
 
     @Override
