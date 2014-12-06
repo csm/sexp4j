@@ -1,0 +1,9 @@
+# S-expressions for Java.
+
+[![Travis Status](https://travis-ci.org/csm/sexp4j.svg?branch=master)](https://travis-ci.org/csm/sexp4j)
+
+This package implements Ron Rivest's [s-expression](http://people.csail.mit.edu/rivest/Sexp.txt)
+format, *minus* the display-hint thing.
+
+The ultimate purpose of this package is to provide an efficient alternative to JSON, for serialization of
+Java objects.
