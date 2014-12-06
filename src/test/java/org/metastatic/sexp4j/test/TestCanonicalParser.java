@@ -5,10 +5,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.junit.Assert;
-import org.metastatic.sexp4j.Atom;
-import org.metastatic.sexp4j.CanonicalParser;
-import org.metastatic.sexp4j.Expression;
-import org.metastatic.sexp4j.ExpressionList;
+import org.metastatic.sexp4j.*;
 
 public class TestCanonicalParser {
     @Test
