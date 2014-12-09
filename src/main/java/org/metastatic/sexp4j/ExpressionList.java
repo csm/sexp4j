@@ -11,6 +11,10 @@ public class ExpressionList extends AbstractList<Expression> implements Expressi
         this.expressions = new ArrayList<>();
     }
 
+    public ExpressionList(int capacity) {
+        this.expressions = new ArrayList<>(capacity);
+    }
+
     public ExpressionList(Class<? extends List<Expression>> listClass)
             throws IllegalAccessException, InstantiationException
     {

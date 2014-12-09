@@ -2,6 +2,8 @@ package org.metastatic.sexp4j;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -9,7 +11,6 @@ import java.util.Base64;
 import java.util.BitSet;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Range;
 
 public class Atom implements Cloneable, Expression
 {
@@ -19,6 +20,13 @@ public class Atom implements Cloneable, Expression
     {
         Preconditions.checkNotNull(bytes);
         this.bytes = bytes.clone();
+    }
+
+    public Atom(byte code, byte[] bytes) {
+        Preconditions.checkNotNull(bytes);
+        this.bytes = new byte[bytes.length + 1];
+        this.bytes[0] = code;
+        System.arraycopy(bytes, 0, this.bytes, 1, bytes.length);
     }
 
     public Atom(byte[] bytes, int offset, int length)
@@ -46,6 +54,26 @@ public class Atom implements Cloneable, Expression
         return atom(string, Charset.forName("UTF-8"));
     }
 
+    public static Atom atom(byte value) {
+        return new Atom(new byte[] { value });
+    }
+
+    public static Atom atom(char value) {
+        return atom((short) value);
+    }
+
+    public static Atom atom(char value, ByteOrder order) {
+        return atom((short) value, order);
+    }
+
+    public static Atom atom(short value, ByteOrder order) {
+        return new Atom(Primitives.bytes(value, order));
+    }
+
+    public static Atom atom(short value) {
+        return new Atom(Primitives.bytes(value));
+    }
+
     public static Atom atom(int value, ByteOrder order) {
         return new Atom(Primitives.bytes(value, order));
     }
@@ -62,6 +90,115 @@ public class Atom implements Cloneable, Expression
         return atom(value, ByteOrder.BIG_ENDIAN);
     }
 
+    public static Atom atom(float value) {
+        return new Atom(Primitives.bytes(value));
+    }
+
+    public static Atom atom(float value, ByteOrder order) {
+        return new Atom(Primitives.bytes(value, order));
+    }
+
+    public static Atom atom(double value) {
+        return new Atom(Primitives.bytes(value));
+    }
+
+    public static Atom atom(double value, ByteOrder order) {
+        return new Atom(Primitives.bytes(value, order));
+    }
+
+    public byte byteValue() {
+        return byteValue(0);
+    }
+
+    public byte byteValue(int offset) {
+        Preconditions.checkState((bytes.length - offset) == Byte.BYTES);
+        return bytes[offset];
+    }
+
+    public char charValue() {
+        return charValue(0);
+    }
+
+    public char charValue(int offset) {
+        Preconditions.checkState((bytes.length - offset) == Character.BYTES);
+        return Primitives.toChar(bytes, offset);
+    }
+
+    public short shortValue() {
+        return shortValue(0);
+    }
+
+    public short shortValue(int offset) {
+        Preconditions.checkState((bytes.length - offset) == Short.BYTES);
+        return Primitives.toShort(bytes, offset);
+    }
+
+    public int intValue() {
+        return intValue(0);
+    }
+
+    public int intValue(int offset) {
+        Preconditions.checkState(bytes.length - offset == Integer.BYTES);
+        return Primitives.toInt(bytes, offset);
+    }
+
+    public long longValue() {
+        return longValue(0);
+    }
+
+    public long longValue(int offset) {
+        Preconditions.checkState(bytes.length - offset == Long.BYTES);
+        return Primitives.toLong(bytes, offset);
+    }
+
+    public float floatValue() {
+        return floatValue(0);
+    }
+
+    public float floatValue(int offset) {
+        Preconditions.checkState(bytes.length - offset == Float.BYTES);
+        return Primitives.toFloat(bytes, offset);
+    }
+
+    public double doubleValue() {
+        return doubleValue(0);
+    }
+
+    public double doubleValue(int offset) {
+        Preconditions.checkState(bytes.length - offset == Double.BYTES);
+        return Primitives.toDouble(bytes, offset);
+    }
+
+    public String stringValue() {
+        return new String(bytes, Charset.forName("UTF-8"));
+    }
+
+    public String stringValue(int offset) {
+        return new String(bytes, offset, bytes.length - offset, Charset.forName("UTF-8"));
+    }
+
+    public BigInteger bigIntegerValue() {
+        return new BigInteger(bytes);
+    }
+
+    public BigInteger bigIntegerValue(int offset) {
+        byte[] b = new byte[bytes.length - offset];
+        System.arraycopy(bytes, offset, b, 0, b.length);
+        return new BigInteger(b);
+    }
+
+    public BigDecimal bigDecimalValue() {
+        return new BigDecimal(stringValue());
+    }
+
+    public BigDecimal bigDecimalValue(int offset) {
+        return new BigDecimal(stringValue(offset));
+    }
+
+    public byte typeCode() {
+        return bytes[0];
+    }
+
     public int length()
     {
         return bytes.length;
@@ -70,6 +207,12 @@ public class Atom implements Cloneable, Expression
     public byte[] bytes()
     {
         return bytes.clone();
+    }
+
+    public byte[] bytes(int offset) {
+        byte[] b = new byte[bytes.length - offset];
+        System.arraycopy(bytes, offset, b, 0, b.length);
+        return b;
     }
 
     public void writeTo(OutputStream out, int offset, int length) throws IOException {
