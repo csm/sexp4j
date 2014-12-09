@@ -1,14 +1,12 @@
 package org.metastatic.sexp4j.mapper;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+
 import org.metastatic.sexp4j.Atom;
 import org.metastatic.sexp4j.Expression;
 import org.metastatic.sexp4j.ExpressionList;
-import org.metastatic.sexp4j.Primitives;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Types;
-import java.util.*;
 
 /**
  * A "simple" mapper between Java objects and expressions.
@@ -16,18 +14,52 @@ import java.util.*;
  * <p>The definition of a "simple" object is:</p>
  *
  * <ul>
- *     <li>Any primitive type. These will be encoded as atoms, with a one-byte type code at the beginning.</li>
- *     <li>A string.</li>
- *     <li>A byte array.</li>
- *     <li>A list of simpler objects. This is encoded as a list: a type code atom, then the sequence of simpler expressions.</li>
- *     <li>A map of strings to any simpler type. This is encoded as a list: a type code atom, then a sequence of key/value expressions.</li>
+ *     <li>Any "primitive" type. These will be encoded as atoms, with one-character display hints, as follows:
+ *     <ul>
+ *         <li>boolean, a byte 0 or 1, with display hint "z".</li>
+ *         <li>byte, one byte, with display hint "b".</li>
+ *         <li>short, two bytes (multi-byte primitives are in big endian order), display hint "s".</li>
+ *         <li>char, two bytes, display hint "c".</li>
+ *         <li>int, four bytes, display hint "i".</li>
+ *         <li>long, eight bytes, display hint "l".</li>
+ *         <li>float, four bytes, display hint "f".</li>
+ *         <li>double, eight bytes, display hint "d".</li>
+ *         <li>nulls, zero bytes, display hint "n".</li>
+ *         <li>Strings, utf-8 bytes, display hint "S".</li>
+ *         <li>byte arrays, as-is, display hint "B".</li>
+ *         <li>BigInteger, result of toByteArray, display hint "I".</li>
+ *         <li>BigDecimal, result of toString then encoded as UTF-8, display hint "D".</li>
+ *     </ul></li>
+ *     <li>A list of simpler objects. This is encoded as a list: a type code atom "l", then the sequence of simpler expressions.</li>
+ *     <li>A set of simpler objects. This is encoded as a list: a type code atom "s", then the sequence of simpler expressions.</li>
+ *     <li>A map of strings to any simpler type. This is encoded as a list: a type code atom "m", then a sequence of key/value expressions.
+ *     The key expression is always a "string", that is, an atom, without any display-hint; the value can be any expression.</li>
  * </ul>
+ *
+ * <p>An example encoding:</p>
+ *
+ * <pre>
+(m aBool [z] #01#
+   aNull [n] 0:
+   aByte [b] #1f#
+   aShort [s] #007b#
+   anInt [i] #0001e240#
+   aLong [l] #00000002dfdc1c34#
+   aFloat [f] #4048f5c3#
+   aDouble [d] #400920c49ba5e354#
+   bytes [B] "just some bytes"
+   string [S] "just a string"
+   bigint [I] |EkmtJZTDfOsLJ4TEzgvzis5AjiEafKqyQwioLo8QAAAAAAAAAAAAAAAA|
+   bigdec [D] "3.1415929203"
+   list (l [S] just [S] some [S] items [S] in [S] a [S] list)
+   set (s [S] more [S] items [S] in [S] a [S] set [S] but [S] no [S] repeated)
+   map (m submaps [z] #01#))
+ * </pre>
  */
 public class SimpleMapper {
     public static enum Type {
-        Null((byte) 'z'),
-        False((byte) 0),
-        True((byte) 1),
+        Null((byte) 'n'),
+        Bool((byte) 'z'),
         Byte((byte) 'b'),
         Short((byte) 's'),
         Char((byte) 'c'),
@@ -38,7 +70,7 @@ public class SimpleMapper {
         String((byte) 'S'),
         BigInt((byte) 'I'),
         BigDecimal((byte) 'D'),
-        Bytes((byte) '['),
+        Bytes((byte) 'B'),
         List((byte) 'l'),
         Set((byte) 's'),
         Map((byte) 'm');
@@ -56,32 +88,32 @@ public class SimpleMapper {
 
     public Expression encode(Object o) throws MapperException {
         if (o == null)
-            return Atom.atom(Type.Null.code);
+            return new Atom(new byte[0]).withHint(Type.Null.code);
         Class clazz = o.getClass();
         if (clazz.equals(Boolean.class))
-            return Atom.atom((boolean) o ? Type.True.code : Type.False.code);
+            return new Atom(new byte[] { (boolean) o ? (byte) 1 : (byte) 0 }).withHint(Type.Bool.code);
         if (clazz.equals(Byte.class))
-            return new Atom(new byte[] { Type.Byte.code, (byte) o });
+            return new Atom(new byte[] { (byte) o }).withHint(Type.Byte.code);
         if (clazz.equals(Short.class))
-            return atom(Type.Short.code, Primitives.bytes((Short) o));
+            return Atom.atom((short) o).withHint(Type.Short.code);
         if (clazz.equals(Character.class))
-            return atom(Type.Char.code, Primitives.bytes((Character) o));
+            return Atom.atom((char) o).withHint(Type.Char.code);
         if (clazz.equals(Integer.class))
-            return atom(Type.Int.code, Primitives.bytes((Integer) o));
+            return Atom.atom((int) o).withHint(Type.Int.code);
         if (clazz.equals(Long.class))
-            return atom(Type.Long.code, Primitives.bytes((Long) o));
+            return Atom.atom((long) o).withHint(Type.Long.code);
         if (clazz.equals(Float.class))
-            return atom(Type.Float.code, Primitives.bytes((Float) o));
+            return Atom.atom((float) o).withHint(Type.Float.code);
         if (clazz.equals(Double.class))
-            return atom(Type.Double.code, Primitives.bytes((Double) o));
+            return Atom.atom((double) o).withHint(Type.Double.code);
         if (clazz.equals(String.class))
-            return atom(Type.String.code, Primitives.bytes((String) o));
+            return Atom.atom((String) o).withHint(Type.String.code);
         if (clazz.equals(BigInteger.class))
-            return atom(Type.BigInt.code, ((BigInteger) o).toByteArray());
+            return new Atom(((BigInteger) o).toByteArray()).withHint(Type.BigInt.code);
         if (clazz.equals(BigDecimal.class))
-            return atom(Type.BigDecimal.code, Primitives.bytes(((BigDecimal) o).toString()));
+            return Atom.atom(o.toString()).withHint(Type.BigDecimal.code);
         if (clazz.isArray() && clazz.getComponentType().equals(Byte.TYPE))
-            return atom(Type.Bytes.code, (byte[]) o);
+            return new Atom((byte[]) o).withHint(Type.Bytes.code);
         if (List.class.isAssignableFrom(clazz)) {
             ExpressionList list = new ExpressionList(((List) o).size() + 1);
             list.add(Atom.atom(Type.List.code));
@@ -113,21 +145,24 @@ public class SimpleMapper {
 
     public Object decode(Expression e) throws MapperException {
         if (e instanceof Atom) {
-            switch (((Atom) e).typeCode()) {
-                case 0: return Boolean.FALSE;
-                case 1: return Boolean.TRUE;
-                case 'z': return null;
-                case 'b': return ((Atom) e).byteValue(1);
-                case 's': return ((Atom) e).shortValue(1);
-                case 'c': return ((Atom) e).charValue(1);
-                case 'i': return ((Atom) e).intValue(1);
-                case 'l': return ((Atom) e).longValue(1);
-                case 'f': return ((Atom) e).floatValue(1);
-                case 'd': return ((Atom) e).doubleValue(1);
-                case 'S': return ((Atom) e).stringValue(1);
-                case '[': return ((Atom) e).bytes(1);
-                case 'I': return ((Atom) e).bigIntegerValue(1);
-                case 'D': return ((Atom) e).bigDecimalValue(1);
+            byte code = '['; // if no explicit display hint, default to plain byte arrays.
+            if (((Atom) e).displayHint().isPresent()) {
+                code = ((Atom) e).displayHint().get().atom().typeCode();
+            }
+            switch (code) {
+                case 'z': return ((Atom) e).byteValue() != 0;
+                case 'n': return null;
+                case 'b': return ((Atom) e).byteValue();
+                case 's': return ((Atom) e).shortValue();
+                case 'c': return ((Atom) e).charValue();
+                case 'i': return ((Atom) e).intValue();
+                case 'l': return ((Atom) e).longValue();
+                case 'f': return ((Atom) e).floatValue();
+                case 'd': return ((Atom) e).doubleValue();
+                case 'S': return ((Atom) e).stringValue();
+                case 'B': return ((Atom) e).bytes();
+                case 'I': return ((Atom) e).bigIntegerValue();
+                case 'D': return ((Atom) e).bigDecimalValue();
                 default: throw new MapperException("invalid atom type code: %02x", ((Atom) e).typeCode());
             }
         }

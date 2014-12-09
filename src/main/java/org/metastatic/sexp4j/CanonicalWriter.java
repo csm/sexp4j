@@ -25,12 +25,23 @@ public class CanonicalWriter implements Writer {
     public int writeAtom(Atom atom) throws IOException {
         if (firstWrite == WriteType.Atom)
             throw new WriteException("already wrote an atom as the first value");
+        int length = 0;
+        if (atom.displayHint().isPresent()) {
+            Atom hintAtom = atom.displayHint().get().atom();
+            out.write('[');
+            byte[] hintLengthTag = String.format(Locale.ENGLISH, "%d:", hintAtom.length()).getBytes("UTF-8");
+            out.write(hintLengthTag);
+            hintAtom.writeTo(out);
+            out.write(']');
+            length += 2 + hintLengthTag.length + hintAtom.length();
+        }
         byte[] lengthTag = String.format(Locale.ENGLISH, "%d:", atom.length()).getBytes("UTF-8");
         out.write(lengthTag);
-        out.write(atom.bytes());
+        atom.writeTo(out);
         if (firstWrite == WriteType.None)
             firstWrite = WriteType.Atom;
-        return lengthTag.length + atom.length();
+        length += lengthTag.length + atom.length();
+        return length;
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class StreamingParser
 {
@@ -41,9 +42,9 @@ public abstract class StreamingParser
             callback.endList();
     }
 
-    protected final void onAtom(byte[] atom) throws ParseException
+    protected final void onAtom(byte[] atom, Optional<byte[]> displayHint) throws ParseException
     {
         for (StreamingParserCallback callback : callbacks)
-            callback.onAtom(atom);
+            callback.onAtom(atom, displayHint);
     }
 }

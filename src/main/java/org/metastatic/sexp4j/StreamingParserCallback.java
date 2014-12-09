@@ -1,5 +1,7 @@
 package org.metastatic.sexp4j;
 
+import java.util.Optional;
+
 /**
  * A callback for parsing s-expressions.
  */
@@ -24,7 +26,7 @@ public interface StreamingParserCallback
      *
      * @param atom The atom.
      */
-    default void onAtom(byte[] atom) throws ParseException
+    default void onAtom(byte[] atom, Optional<byte[]> displayHint) throws ParseException
     {
     }
 }

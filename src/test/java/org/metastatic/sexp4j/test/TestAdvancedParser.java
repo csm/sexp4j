@@ -1,14 +1,16 @@
 package org.metastatic.sexp4j.test;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.metastatic.sexp4j.AdvancedParser;
-import org.metastatic.sexp4j.Atom;
-import org.metastatic.sexp4j.Expression;
-import org.metastatic.sexp4j.ExpressionList;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.metastatic.sexp4j.*;
+
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by cmarshall on 12/5/14.
@@ -51,5 +53,18 @@ public class TestAdvancedParser {
         Assert.assertEquals(Atom.atom("a"), ((ExpressionList) e).get(2));
         Assert.assertEquals(Atom.atom("sample"), ((ExpressionList) e).get(3));
         Assert.assertEquals(String.format("actual: %s", new String(((Atom) ((ExpressionList) e).get(4)).bytes())), Atom.atom("s-expression in advanced format"), ((ExpressionList) e).get(4));
+    }
+
+    @Test
+    public void testHints1() throws IOException {
+        String input = "([hint] atom)";
+        Expression expr = new AdvancedParser(new ByteArrayInputStream(input.getBytes())).parse();
+        assertThat(expr, instanceOf(ExpressionList.class));
+        assertThat(((ExpressionList) expr).size(), is(1));
+        assertThat(((ExpressionList) expr).get(0), instanceOf(Atom.class));
+        assertTrue(((Atom) ((ExpressionList) expr).get(0)).displayHint().isPresent());
+        assertThat(((Atom) ((ExpressionList) expr).get(0)).displayHint().get().atom().stringValue(),
+                is("hint"));
+        assertThat(((Atom) ((ExpressionList) expr).get(0)).stringValue(), is("atom"));
     }
 }

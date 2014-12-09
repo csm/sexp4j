@@ -1,10 +1,10 @@
 package org.metastatic.sexp4j;
 
-import com.google.common.base.Preconditions;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Optional;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Created by cmarshall on 12/4/14.
@@ -81,10 +81,33 @@ public class AdvancedWriter implements Writer {
         return new Builder();
     }
 
+    private int writeHint(Atom hint) throws IOException {
+        int wrote = indentOrSpace();
+        outputStream.write('[');
+        wrote++;
+        wrote = writeAtomBytes(hint, wrote);
+        outputStream.write(']');
+        wrote++;
+        return wrote;
+    }
+
     @Override
     public int writeAtom(Atom atom) throws IOException {
-        int wrote = indentOrSpace();
+        int wrote = 0;
 
+        if (atom.displayHint().isPresent()) {
+            wrote += writeHint(atom.displayHint().get().atom());
+        }
+
+        wrote += indentOrSpace();
+
+        wrote = writeAtomBytes(atom, wrote);
+        currentLineLength += wrote;
+        lastWritten = LastWritten.Atom;
+        return wrote;
+    }
+
+    private int writeAtomBytes(Atom atom, int wrote) throws IOException {
         if (atom.canBeSymbol())
         {
             atom.writeTo(outputStream);
@@ -110,8 +133,6 @@ public class AdvancedWriter implements Writer {
             outputStream.write('|');
             wrote += b64.length + 2;
         }
-        currentLineLength += wrote;
-        lastWritten = LastWritten.Atom;
         return wrote;
     }
 

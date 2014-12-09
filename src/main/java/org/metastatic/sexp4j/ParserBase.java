@@ -1,7 +1,6 @@
 package org.metastatic.sexp4j;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Optional;
 
@@ -33,14 +32,17 @@ public abstract class ParserBase implements Parser {
         }
 
         @Override
-        public void onAtom(byte[] atom) throws ParseException {
+        public void onAtom(byte[] atom, Optional<byte[]> displayHint) throws ParseException {
+            Atom a = new Atom(atom);
+            if (displayHint.isPresent())
+                a = a.withHint(new Atom(displayHint.get()));
             if (stack.isEmpty()) {
                 if (root.isPresent())
                     throw new ParseException("found multiple root values");
-                root = Optional.of(new Atom(atom));
+                root = Optional.of(a);
             }
             else
-                stack.peek().add(new Atom(atom));
+                stack.peek().add(a);
         }
     }
 

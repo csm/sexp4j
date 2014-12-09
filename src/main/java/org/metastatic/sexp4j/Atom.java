@@ -9,17 +9,19 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.BitSet;
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 
 public class Atom implements Cloneable, Expression
 {
     private final byte[] bytes;
+    private final Optional<DisplayHint> displayHint;
 
-    public Atom(byte[] bytes)
-    {
+    public Atom(byte[] bytes) {
         Preconditions.checkNotNull(bytes);
         this.bytes = bytes.clone();
+        displayHint = Optional.empty();
     }
 
     public Atom(byte code, byte[] bytes) {
@@ -27,15 +29,21 @@ public class Atom implements Cloneable, Expression
         this.bytes = new byte[bytes.length + 1];
         this.bytes[0] = code;
         System.arraycopy(bytes, 0, this.bytes, 1, bytes.length);
+        displayHint = Optional.empty();
     }
 
-    public Atom(byte[] bytes, int offset, int length)
-    {
+    public Atom(byte[] bytes, int offset, int length) {
         Preconditions.checkNotNull(bytes);
         Preconditions.checkArgument(offset > 0);
         Preconditions.checkArgument(offset + length <= bytes.length);
         this.bytes = new byte[length];
         System.arraycopy(bytes, offset, this.bytes, 0, length);
+        displayHint = Optional.empty();
+    }
+
+    private Atom(byte[] bytes, DisplayHint hint) {
+        this.bytes = bytes;
+        this.displayHint = Optional.of(hint);
     }
 
     public static Atom atom(byte[] bytes) {
@@ -193,6 +201,23 @@ public class Atom implements Cloneable, Expression
 
     public BigDecimal bigDecimalValue(int offset) {
         return new BigDecimal(stringValue(offset));
+    }
+
+    public Atom withHint(String displayHint) {
+        return new Atom(bytes, new DisplayHint(displayHint));
+    }
+
+    public Atom withHint(Atom displayHint) {
+        Preconditions.checkArgument(!displayHint.displayHint().isPresent(), "Recursive display hints not admissible");
+        return new Atom(bytes, new DisplayHint(displayHint));
+    }
+
+    public Atom withHint(byte displayHint) {
+        return new Atom(bytes, new DisplayHint(atom(displayHint)));
+    }
+
+    public Optional<DisplayHint> displayHint() {
+        return displayHint;
     }
 
     public byte typeCode() {

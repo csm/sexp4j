@@ -1,12 +1,9 @@
 package org.metastatic.sexp4j;
 
-import com.google.common.base.Preconditions;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.BitSet;
 import java.util.LinkedList;
@@ -29,6 +26,8 @@ public class AdvancedStreamingParser extends StreamingParser {
     private State state = State.ConsumeWhitespace;
     private final LinkedList<Integer> tokens;
     private Optional<Integer> quotedStringLength = Optional.empty();
+    private boolean consumingDisplayHint = false;
+    private byte[] displayHint = null;
 
     public AdvancedStreamingParser(InputStream input) {
         super(input);
@@ -81,6 +80,18 @@ public class AdvancedStreamingParser extends StreamingParser {
         }
         else if (Character.isWhitespace(b))
             return true;
+        else if (b == '[') {
+            if (consumingDisplayHint)
+                throw new ParseException("nested display-hints");
+            consumingDisplayHint = true;
+            return true;
+        }
+        else if (b == ']') {
+            if (!consumingDisplayHint)
+                throw new ParseException("unexpected token ']'");
+            displayHint = new byte[0];
+            consumingDisplayHint = false;
+        }
         else if (b == '#')
             state = State.ConsumeHex;
         else if (b == '|')
@@ -121,7 +132,14 @@ public class AdvancedStreamingParser extends StreamingParser {
                 int read = input.read(buffer);
                 if (read < length)
                     throw new EOFException();
-                onAtom(buffer);
+                if (consumingDisplayHint) {
+                    displayHint = buffer;
+                    consumeWhitespaceUntil(']');
+                    consumingDisplayHint = false;
+                } else {
+                    onAtom(buffer, Optional.ofNullable(displayHint));
+                    displayHint = null;
+                }
                 state = State.ConsumeWhitespace;
                 break;
             }
@@ -144,6 +162,20 @@ public class AdvancedStreamingParser extends StreamingParser {
         return true;
     }
 
+    private void consumeWhitespaceUntil(int stopchar) throws IOException {
+        while (true) {
+            int ch = input.read();
+            if (ch == stopchar)
+                break;
+            else if (Character.isWhitespace(ch))
+                continue;
+            else if (ch == -1)
+                throw new EOFException();
+            else
+                throw new ParseException("unexpected token %02x", ch);
+        }
+    }
+
     private int makeLength() throws ParseException {
         int length = 0;
         while (!tokens.isEmpty()) {
@@ -157,13 +189,21 @@ public class AdvancedStreamingParser extends StreamingParser {
         return length;
     }
 
-    private void makeSymbol() throws ParseException {
+    private void makeSymbol() throws IOException {
         byte[] buffer = new byte[tokens.size()];
         int i = 0;
         while (!tokens.isEmpty()) {
             buffer[i++] = tokens.removeFirst().byteValue();
         }
-        onAtom(buffer);
+        if (consumingDisplayHint) {
+            displayHint = buffer;
+            // note, don't need to consume whitespace until ']', because
+            // we already got it.
+            consumingDisplayHint = false;
+        } else {
+            onAtom(buffer, Optional.ofNullable(displayHint));
+            displayHint = null;
+        }
     }
 
     private boolean consumeSymbol() throws IOException {
@@ -190,6 +230,11 @@ public class AdvancedStreamingParser extends StreamingParser {
                 makeSymbol();
                 onListEnd();
                 listDepth--;
+                state = State.ConsumeWhitespace;
+                break;
+            }
+            else if (b == ']' && consumingDisplayHint) {
+                makeSymbol();
                 state = State.ConsumeWhitespace;
                 break;
             }
@@ -224,7 +269,14 @@ public class AdvancedStreamingParser extends StreamingParser {
                 ByteBuffer result = Base64.getDecoder().decode(buffer);
                 byte[] bytes = new byte[result.remaining()];
                 result.get(bytes);
-                onAtom(bytes);
+                if (consumingDisplayHint) {
+                    displayHint = bytes;
+                    consumeWhitespaceUntil(']');
+                    consumingDisplayHint = false;
+                } else {
+                    onAtom(bytes, Optional.ofNullable(displayHint));
+                    displayHint = null;
+                }
                 state = State.ConsumeWhitespace;
                 break;
             }
@@ -266,7 +318,14 @@ public class AdvancedStreamingParser extends StreamingParser {
                 for (int i = 0, j = 0; i + 1 < buffer.length() && j < result.length; i += 2, j++) {
                     result[j] = (byte) ((hexchar(buffer.charAt(i)) << 4) | hexchar(buffer.charAt(i + 1)));
                 }
-                onAtom(result);
+                if (consumingDisplayHint) {
+                    displayHint = result;
+                    consumeWhitespaceUntil(']');
+                    consumingDisplayHint = false;
+                } else {
+                    onAtom(result, Optional.ofNullable(displayHint));
+                    displayHint = null;
+                }
                 state = State.ConsumeWhitespace;
                 break;
             }
@@ -394,7 +453,14 @@ public class AdvancedStreamingParser extends StreamingParser {
                     throw new ParseException("quoted string length did not match explicit length");
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
-                onAtom(bytes);
+                if (consumingDisplayHint) {
+                    displayHint = bytes;
+                    consumeWhitespaceUntil(']');
+                    consumingDisplayHint = false;
+                } else {
+                    onAtom(bytes, Optional.ofNullable(displayHint));
+                    displayHint = null;
+                }
                 state = State.ConsumeWhitespace;
                 break;
             }
