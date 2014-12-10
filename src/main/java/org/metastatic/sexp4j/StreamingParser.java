@@ -1,10 +1,11 @@
 package org.metastatic.sexp4j;
 
+import com.google.common.base.Optional;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public abstract class StreamingParser
 {

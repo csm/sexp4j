@@ -6,7 +6,24 @@
 
   <groupId>org.metastatic</groupId>
   <artifactId>sexp4j</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
+  <name>sexp4j</name>
+  <description>Rivest s-expression library for Java</description>
+  <url>https://github.com/csm/sexp4j</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <dependencies>
     <dependency>
@@ -34,10 +51,18 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
         <configuration>
-          <source>8</source>
-          <target>8</target>
+          <source>7</source>
+          <target>7</target>
         </configuration>
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>clojars</id>
+      <name>Clojars</name>
+      <url>https://clojars.org/repo</url>
+    </repository>
+  </distributionManagement>
 </project>

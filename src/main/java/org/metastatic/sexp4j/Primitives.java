@@ -20,13 +20,13 @@ public class Primitives {
     }
 
     public static byte[] bytes(short value, ByteOrder order) {
-        byte[] result = new byte[Short.BYTES];
+        byte[] result = new byte[2];
         ByteBuffer.wrap(result).order(order).putShort(value);
         return result;
     }
 
     public static byte[] bytes(int value, ByteOrder order) {
-        byte[] result = new byte[Integer.BYTES];
+        byte[] result = new byte[4];
         ByteBuffer.wrap(result).order(order).putInt(value);
         return result;
     }
@@ -36,7 +36,7 @@ public class Primitives {
     }
 
     public static byte[] bytes(long value, ByteOrder order) {
-        byte[] result = new byte[Long.BYTES];
+        byte[] result = new byte[8];
         ByteBuffer.wrap(result).order(order).putLong(value);
         return result;
     }
@@ -46,7 +46,7 @@ public class Primitives {
     }
 
     public static byte[] bytes(float value, ByteOrder order) {
-        byte[] result = new byte[Float.BYTES];
+        byte[] result = new byte[4];
         ByteBuffer.wrap(result).order(order).putFloat(value);
         return result;
     }
@@ -56,7 +56,7 @@ public class Primitives {
     }
 
     public static byte[] bytes(double value, ByteOrder order) {
-        byte[] result = new byte[Double.BYTES];
+        byte[] result = new byte[8];
         ByteBuffer.wrap(result).order(order).putDouble(value);
         return result;
     }

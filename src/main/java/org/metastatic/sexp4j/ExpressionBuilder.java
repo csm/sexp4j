@@ -1,13 +1,14 @@
 package org.metastatic.sexp4j;
 
+import com.google.common.base.Optional;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
-import java.util.Optional;
 
 public class ExpressionBuilder {
     private final LinkedList<ExpressionList> stack = new LinkedList<>();
-    private Optional<Expression> first = Optional.empty();
+    private Optional<Expression> first = Optional.absent();
 
     public static ExpressionBuilder create() {
         return new ExpressionBuilder();
@@ -28,7 +29,7 @@ public class ExpressionBuilder {
         {
             if (first.isPresent())
                 throw new IllegalStateException("attempt to add atom outside of list");
-            first = Optional.of(atom);
+            first = Optional.<Expression> of(atom);
         }
         else
             stack.peek().add(atom);
@@ -63,7 +64,7 @@ public class ExpressionBuilder {
         {
             if (first.isPresent())
                 throw new IllegalStateException("attempt to begin list outside of list");
-            first = Optional.of(list);
+            first = Optional.<Expression> of(list);
         }
         else
             stack.peek().add(list);

@@ -1,13 +1,14 @@
 package org.metastatic.sexp4j;
 
+import com.google.common.base.Optional;
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Base64;
 import java.util.BitSet;
 import java.util.LinkedList;
-import java.util.Optional;
 
 /**
  * Created by cmarshall on 12/5/14.
@@ -25,7 +26,7 @@ public class AdvancedStreamingParser extends StreamingParser {
     private int listDepth = 0;
     private State state = State.ConsumeWhitespace;
     private final LinkedList<Integer> tokens;
-    private Optional<Integer> quotedStringLength = Optional.empty();
+    private Optional<Integer> quotedStringLength = Optional.absent();
     private boolean consumingDisplayHint = false;
     private byte[] displayHint = null;
 
@@ -137,7 +138,7 @@ public class AdvancedStreamingParser extends StreamingParser {
                     consumeWhitespaceUntil(']');
                     consumingDisplayHint = false;
                 } else {
-                    onAtom(buffer, Optional.ofNullable(displayHint));
+                    onAtom(buffer, Optional.fromNullable(displayHint));
                     displayHint = null;
                 }
                 state = State.ConsumeWhitespace;
@@ -201,7 +202,7 @@ public class AdvancedStreamingParser extends StreamingParser {
             // we already got it.
             consumingDisplayHint = false;
         } else {
-            onAtom(buffer, Optional.ofNullable(displayHint));
+            onAtom(buffer, Optional.fromNullable(displayHint));
             displayHint = null;
         }
     }
@@ -266,15 +267,15 @@ public class AdvancedStreamingParser extends StreamingParser {
             }
             else if (b == '|') {
                 buffer.flip();
-                ByteBuffer result = Base64.getDecoder().decode(buffer);
-                byte[] bytes = new byte[result.remaining()];
-                result.get(bytes);
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+                bytes = Base64.decodeBase64(bytes);
                 if (consumingDisplayHint) {
                     displayHint = bytes;
                     consumeWhitespaceUntil(']');
                     consumingDisplayHint = false;
                 } else {
-                    onAtom(bytes, Optional.ofNullable(displayHint));
+                    onAtom(bytes, Optional.fromNullable(displayHint));
                     displayHint = null;
                 }
                 state = State.ConsumeWhitespace;
@@ -323,7 +324,7 @@ public class AdvancedStreamingParser extends StreamingParser {
                     consumeWhitespaceUntil(']');
                     consumingDisplayHint = false;
                 } else {
-                    onAtom(result, Optional.ofNullable(displayHint));
+                    onAtom(result, Optional.fromNullable(displayHint));
                     displayHint = null;
                 }
                 state = State.ConsumeWhitespace;
@@ -369,8 +370,8 @@ public class AdvancedStreamingParser extends StreamingParser {
 
     private boolean consumeQuotedString() throws IOException {
         Optional<Integer> len = quotedStringLength;
-        quotedStringLength = Optional.empty();
-        ByteBuffer buffer = ByteBuffer.allocate(len.orElse(16));
+        quotedStringLength = Optional.absent();
+        ByteBuffer buffer = ByteBuffer.allocate(len.or(16));
         LinkedList<Integer> peek = new LinkedList<>();
         while (true) {
             int b;
@@ -458,7 +459,7 @@ public class AdvancedStreamingParser extends StreamingParser {
                     consumeWhitespaceUntil(']');
                     consumingDisplayHint = false;
                 } else {
-                    onAtom(bytes, Optional.ofNullable(displayHint));
+                    onAtom(bytes, Optional.fromNullable(displayHint));
                     displayHint = null;
                 }
                 state = State.ConsumeWhitespace;

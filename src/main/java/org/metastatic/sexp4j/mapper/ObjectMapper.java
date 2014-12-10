@@ -1,16 +1,11 @@
 package org.metastatic.sexp4j.mapper;
 
-import com.google.common.base.Preconditions;
 import org.metastatic.sexp4j.*;
 
 import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * Created by cmarshall on 12/4/14.
@@ -23,6 +18,58 @@ public class ObjectMapper {
 
     private interface ValueGetter {
         Object getValue(Object o, String fieldName) throws IllegalAccessException, InvocationTargetException;
+    }
+
+    private static class FieldValueSetter implements ValueSetter {
+        private final Field field;
+
+        private FieldValueSetter(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        public void setValue(Object o, String fieldName, Object value) throws IllegalAccessException, InvocationTargetException {
+            field.set(o, value);
+        }
+    }
+
+    public static class FieldValueGetter implements ValueGetter {
+        private final Field field;
+
+        public FieldValueGetter(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        public Object getValue(Object o, String fieldName) throws IllegalAccessException, InvocationTargetException {
+            return field.get(o);
+        }
+    }
+
+    private static class MethodValueSetter implements ValueSetter {
+        private final Method setter;
+
+        private MethodValueSetter(Method setter) {
+            this.setter = setter;
+        }
+
+        @Override
+        public void setValue(Object o, String fieldName, Object value) throws IllegalAccessException, InvocationTargetException {
+            setter.invoke(o, value);
+        }
+    }
+
+    private static class MethodValueGetter implements ValueGetter {
+        private final Method method;
+
+        private MethodValueGetter(Method method) {
+            this.method = method;
+        }
+
+        @Override
+        public Object getValue(Object o, String fieldName) throws IllegalAccessException, InvocationTargetException {
+            return method.invoke(o);
+        }
     }
 
     private class ClassFieldIndex {
@@ -53,11 +100,11 @@ public class ObjectMapper {
     }
 
     private boolean isGetter(Method m) {
-        return isPublicInstance(m) && m.getParameterCount() == 0 && !Void.TYPE.equals(m.getReturnType());
+        return isPublicInstance(m) && m.getParameterTypes().length == 0 && !Void.TYPE.equals(m.getReturnType());
     }
 
     private boolean isSetter(Method m) {
-        return isPublicInstance(m) && m.getParameterCount() == 1 && Void.TYPE.equals(m.getReturnType());
+        return isPublicInstance(m) && m.getParameterTypes().length == 1 && Void.TYPE.equals(m.getReturnType());
     }
 
     private boolean isSetterFor(Method getter, Method m) {
@@ -66,19 +113,24 @@ public class ObjectMapper {
 
     private Map<String, ClassFieldIndex> index(Class clazz) {
         Map<String, ClassFieldIndex> fieldIndex = new LinkedHashMap<>();
-        for (Field field : clazz.getFields()) {
-            fieldIndex.put(field.getName(), new ClassFieldIndex(field.getType(), field.getName(),
-                    (o, n, v) -> field.set(o, v), (o, n) -> field.get(o)));
+        for (final Field field : clazz.getFields()) {
+            fieldIndex.put(field.getName(), new ClassFieldIndex(field.getType(), field.getName(), new FieldValueSetter(field), new FieldValueGetter(field)));
         }
-        List<Method> getters = Arrays.asList(clazz.getMethods()).stream().filter(m -> isGetter(m) && !m.getName().equals("get") && m.getName().startsWith("get")).collect(Collectors.toList());
-        List<Method> setters = Arrays.asList(clazz.getMethods()).stream().filter(m -> isSetter(m) && !m.getName().equals("set") && m.getName().startsWith("set")).collect(Collectors.toList());
+        List<Method> getters = new ArrayList<>();
+        List<Method> setters = new ArrayList<>();
+        for (Method method : clazz.getMethods()) {
+            if (isGetter(method) && !method.getName().equals("get") && method.getName().startsWith("get"))
+                getters.add(method);
+            if (isSetter(method) && !method.getName().equals("set") && method.getName().startsWith("set"))
+                setters.add(method);
+        }
         for (Method getter : getters) {
             String gettableName = fieldName(getter.getName(), "get");
             for (Method setter : setters) {
                 String settableName = fieldName(setter.getName(), "set");
                 if (gettableName.equals(settableName) && isSetterFor(getter, setter)) {
                     fieldIndex.put(gettableName, new ClassFieldIndex(getter.getReturnType(), gettableName,
-                            (o, n, v) -> setter.invoke(o, v), (o, n) -> getter.invoke(o)));
+                            new MethodValueSetter(setter), new MethodValueGetter(getter)));
                 }
             }
         }

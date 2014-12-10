@@ -2,8 +2,8 @@ package org.metastatic.sexp4j;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 
+import com.google.common.base.Optional;
 import com.google.common.io.ByteStreams;
 
 public class CanonicalStreamingParser extends StreamingParser
@@ -40,7 +40,7 @@ public class CanonicalStreamingParser extends StreamingParser
                 int len = readLength(ch);
                 byte[] buffer = new byte[len];
                 ByteStreams.readFully(input, buffer);
-                onAtom(buffer, Optional.ofNullable(displayHint));
+                onAtom(buffer, Optional.fromNullable(displayHint));
                 displayHint = null;
             }
             else if (Character.isWhitespace(ch)) {

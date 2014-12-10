@@ -2,8 +2,8 @@ package org.metastatic.sexp4j;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Optional;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 /**
@@ -36,9 +36,9 @@ public class AdvancedWriter implements Writer {
     }
 
     public static class Builder {
-        private Optional<Integer> lineLength = Optional.empty();
-        private Optional<Integer> indentAmount = Optional.empty();
-        private Optional<OutputStream> outputStream = Optional.empty();
+        private Optional<Integer> lineLength = Optional.absent();
+        private Optional<Integer> indentAmount = Optional.absent();
+        private Optional<OutputStream> outputStream = Optional.absent();
 
         private Builder() {
         }
@@ -144,7 +144,7 @@ public class AdvancedWriter implements Writer {
                 currentLineLength = -1;
                 wrote++;
                 for (int i = 0; i < indentLevel; i++) {
-                    for (int j = 0; j < indentAmount.orElse(0); j++) {
+                    for (int j = 0; j < indentAmount.or(0); j++) {
                         outputStream.write(' ');
                         wrote++;
                     }

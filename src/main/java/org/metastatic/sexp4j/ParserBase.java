@@ -1,11 +1,12 @@
 package org.metastatic.sexp4j;
 
+import com.google.common.base.Optional;
+
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.Optional;
 
 public abstract class ParserBase implements Parser {
-    private Optional<Expression> root = Optional.empty();
+    private Optional<Expression> root = Optional.absent();
     private final LinkedList<ExpressionList> stack = new LinkedList<>();
     private final StreamingParser stream;
 
@@ -19,7 +20,7 @@ public abstract class ParserBase implements Parser {
             {
                 if (root.isPresent())
                     throw new ParseException("found multiple root values");
-                root = Optional.of(newList);
+                root = Optional.<Expression> of(newList);
             }
             stack.push(newList);
         }
@@ -39,7 +40,7 @@ public abstract class ParserBase implements Parser {
             if (stack.isEmpty()) {
                 if (root.isPresent())
                     throw new ParseException("found multiple root values");
-                root = Optional.of(a);
+                root = Optional.<Expression> of(a);
             }
             else
                 stack.peek().add(a);
@@ -53,6 +54,6 @@ public abstract class ParserBase implements Parser {
 
     public Expression parse() throws IOException {
         stream.parse();
-        return root.orElse(null);
+        return root.orNull();
     }
 }

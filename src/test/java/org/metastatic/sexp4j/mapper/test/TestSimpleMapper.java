@@ -45,12 +45,12 @@ public class TestSimpleMapper {
         Object o = mapper.decode(e);
         assertThat(o, instanceOf(Map.class));
         Map m2 = (Map) o;
-        assertThat(m2.get("aBool"), is(Boolean.TRUE));
+        assertEquals(Boolean.TRUE, m2.get("aBool"));
         assertTrue(m2.containsKey("aNull"));
         assertNull(m2.get("aNull"));
-        assertThat(m2.get("aByte"), is((byte) 0x1f));
-        assertThat(m2.get("aShort"), is((short) 123));
-        assertThat(m2.get("anInt"), is(123456));
-        assertThat(m2.get("aLong"), is(12345678900L));
+        assertEquals((byte) 0x1f, m2.get("aByte"));
+        assertEquals((short) 123, m2.get("aShort"));
+        assertEquals(123456, m2.get("anInt"));
+        assertEquals(12345678900L, m2.get("aLong"));
     }
 }

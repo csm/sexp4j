@@ -7,11 +7,11 @@ import java.math.BigInteger;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.BitSet;
-import java.util.Optional;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.apache.commons.codec.binary.Base64;
 
 public class Atom implements Cloneable, Expression
 {
@@ -21,7 +21,7 @@ public class Atom implements Cloneable, Expression
     public Atom(byte[] bytes) {
         Preconditions.checkNotNull(bytes);
         this.bytes = bytes.clone();
-        displayHint = Optional.empty();
+        displayHint = Optional.absent();
     }
 
     public Atom(byte code, byte[] bytes) {
@@ -29,7 +29,7 @@ public class Atom implements Cloneable, Expression
         this.bytes = new byte[bytes.length + 1];
         this.bytes[0] = code;
         System.arraycopy(bytes, 0, this.bytes, 1, bytes.length);
-        displayHint = Optional.empty();
+        displayHint = Optional.absent();
     }
 
     public Atom(byte[] bytes, int offset, int length) {
@@ -38,7 +38,7 @@ public class Atom implements Cloneable, Expression
         Preconditions.checkArgument(offset + length <= bytes.length);
         this.bytes = new byte[length];
         System.arraycopy(bytes, offset, this.bytes, 0, length);
-        displayHint = Optional.empty();
+        displayHint = Optional.absent();
     }
 
     private Atom(byte[] bytes, DisplayHint hint) {
@@ -119,7 +119,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public byte byteValue(int offset) {
-        Preconditions.checkState((bytes.length - offset) == Byte.BYTES);
+        Preconditions.checkState((bytes.length - offset) == 1);
         return bytes[offset];
     }
 
@@ -128,7 +128,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public char charValue(int offset) {
-        Preconditions.checkState((bytes.length - offset) == Character.BYTES);
+        Preconditions.checkState((bytes.length - offset) == 2);
         return Primitives.toChar(bytes, offset);
     }
 
@@ -137,7 +137,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public short shortValue(int offset) {
-        Preconditions.checkState((bytes.length - offset) == Short.BYTES);
+        Preconditions.checkState((bytes.length - offset) == 2);
         return Primitives.toShort(bytes, offset);
     }
 
@@ -146,7 +146,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public int intValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == Integer.BYTES);
+        Preconditions.checkState(bytes.length - offset == 4);
         return Primitives.toInt(bytes, offset);
     }
 
@@ -155,7 +155,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public long longValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == Long.BYTES);
+        Preconditions.checkState(bytes.length - offset == 8);
         return Primitives.toLong(bytes, offset);
     }
 
@@ -164,7 +164,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public float floatValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == Float.BYTES);
+        Preconditions.checkState(bytes.length - offset == 4);
         return Primitives.toFloat(bytes, offset);
     }
 
@@ -173,7 +173,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public double doubleValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == Double.BYTES);
+        Preconditions.checkState(bytes.length - offset == 8);
         return Primitives.toDouble(bytes, offset);
     }
 
@@ -298,7 +298,7 @@ public class Atom implements Cloneable, Expression
     }
 
     public byte[] asBase64Bytes() {
-        return Base64.getEncoder().encode(bytes);
+        return Base64.encodeBase64(bytes);
     }
 
     @Override
