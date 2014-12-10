@@ -9,6 +9,7 @@ import org.metastatic.sexp4j.*;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -57,14 +58,17 @@ public class TestAdvancedParser {
 
     @Test
     public void testHints1() throws IOException {
-        String input = "([hint] atom)";
+        String input = "([hint] atom atom2)";
         Expression expr = new AdvancedParser(new ByteArrayInputStream(input.getBytes())).parse();
         assertThat(expr, instanceOf(ExpressionList.class));
-        assertThat(((ExpressionList) expr).size(), is(1));
+        assertThat(((ExpressionList) expr).size(), is(2));
         assertThat(((ExpressionList) expr).get(0), instanceOf(Atom.class));
         assertTrue(((Atom) ((ExpressionList) expr).get(0)).displayHint().isPresent());
         assertThat(((Atom) ((ExpressionList) expr).get(0)).displayHint().get().atom().stringValue(),
                 is("hint"));
         assertThat(((Atom) ((ExpressionList) expr).get(0)).stringValue(), is("atom"));
+        assertThat(((ExpressionList) expr).get(1), instanceOf(Atom.class));
+        assertFalse(((Atom) ((ExpressionList) expr).get(1)).displayHint().isPresent());
+        assertThat(((Atom) ((ExpressionList) expr).get(1)).stringValue(), is("atom2"));
     }
 }

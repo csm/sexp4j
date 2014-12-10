@@ -82,7 +82,7 @@ public class AdvancedWriter implements Writer {
     }
 
     private int writeHint(Atom hint) throws IOException {
-        int wrote = indentOrSpace();
+        int wrote = 0; //indentOrSpace();
         outputStream.write('[');
         wrote++;
         wrote = writeAtomBytes(hint, wrote);
@@ -93,13 +93,13 @@ public class AdvancedWriter implements Writer {
 
     @Override
     public int writeAtom(Atom atom) throws IOException {
-        int wrote = 0;
+        int wrote = indentOrSpace();
 
         if (atom.displayHint().isPresent()) {
             wrote += writeHint(atom.displayHint().get().atom());
         }
 
-        wrote += indentOrSpace();
+        //wrote += indentOrSpace();
 
         wrote = writeAtomBytes(atom, wrote);
         currentLineLength += wrote;
