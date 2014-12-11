@@ -1,8 +1,0 @@
-# S-expressions for Java.
-
-[![Travis Status](https://travis-ci.org/csm/sexp4j.svg?branch=master)](https://travis-ci.org/csm/sexp4j)
-
-[![Clojars Project](http://clojars.org/org.metastatic/sexp4j/latest-version.svg)](http://clojars.org/org.metastatic/sexp4j)
-
-This package implements Ron Rivest's [s-expression](http://people.csail.mit.edu/rivest/Sexp.txt)
-format. It also provides some useful ways to use this format for serializing Java objects.
