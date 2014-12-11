@@ -6,7 +6,7 @@
 
   <groupId>org.metastatic</groupId>
   <artifactId>sexp4j</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.2-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>sexp4j</name>
   <description>Rivest s-expression library for Java</description>
