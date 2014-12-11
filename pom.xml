@@ -6,7 +6,7 @@
 
   <groupId>org.metastatic</groupId>
   <artifactId>sexp4j</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>0.1.1</version>
   <packaging>jar</packaging>
   <name>sexp4j</name>
   <description>Rivest s-expression library for Java</description>
@@ -16,6 +16,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
+
+  <scm>
+    <connection>scm:git:https://github.com/csm/sexp4j.git</connection>
+    <url>https://github.com/csm/sexp4j</url>
+  </scm>
 
   <licenses>
     <license>
@@ -54,6 +59,20 @@
           <source>7</source>
           <target>7</target>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
