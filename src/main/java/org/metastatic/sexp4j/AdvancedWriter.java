@@ -7,7 +7,8 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 /**
- * Created by cmarshall on 12/4/14.
+ * A {@link org.metastatic.sexp4j.Writer} implementation for the
+ * advanced encoding.
  */
 public class AdvancedWriter implements Writer {
     private final Optional<Integer> lineLength;
@@ -35,6 +36,12 @@ public class AdvancedWriter implements Writer {
         this.outputStream = outputStream;
     }
 
+    /**
+     * Builder class for advanced writers.
+     *
+     * <p>At minimum, when building a writer, you need to specify
+     * an OutputStream; line length and indents are optional.</p>
+     */
     public static class Builder {
         private Optional<Integer> lineLength = Optional.absent();
         private Optional<Integer> indentAmount = Optional.absent();
@@ -43,40 +50,87 @@ public class AdvancedWriter implements Writer {
         private Builder() {
         }
 
+        /**
+         * Get the line length.
+         *
+         * @return The line length, which will be absent if not set.
+         */
         public Optional<Integer> getLineLength() {
             return lineLength;
         }
 
+        /**
+         * Get the indent amount.
+         *
+         * @return The indent amount, which will be absent if not set.
+         */
         public Optional<Integer> getIndentAmount() {
             return indentAmount;
         }
 
+        /**
+         * Get the output stream.
+         *
+         * @return The output stream, which will be absent if not set.
+         */
         public Optional<OutputStream> getOutputStream() {
             return outputStream;
         }
 
+        /**
+         * Set the line length.
+         *
+         * @param lineLength The line length.
+         * @throws java.lang.IllegalArgumentException If the line length is not positive.
+         * @return This instance.
+         */
         public Builder lineLength(int lineLength) {
             Preconditions.checkArgument(lineLength > 0);
             this.lineLength = Optional.of(lineLength);
             return this;
         }
 
+        /**
+         * Set the indent amount (in spaces).
+         *
+         * @param indentAmount The indent amount.
+         * @throws java.lang.IllegalArgumentException If the indent amount is not positive.
+         * @return This instance.
+         */
         public Builder indentAmount(int indentAmount) {
             Preconditions.checkArgument(indentAmount > 0);
             this.indentAmount = Optional.of(indentAmount);
             return this;
         }
 
+        /**
+         * Set the output stream (possibly overwriting a previous value.
+         *
+         * @param outputStream The output stream.
+         * @throws java.lang.NullPointerException If the argument is null.
+         * @return This instance.
+         */
         public Builder outputStream(OutputStream outputStream) {
             this.outputStream = Optional.of(outputStream);
             return this;
         }
 
+        /**
+         * Build the writer.
+         *
+         * @throws java.lang.IllegalStateException If the output stream has not been set.
+         * @return The new writer.
+         */
         public AdvancedWriter build() {
             return new AdvancedWriter(lineLength, indentAmount, outputStream.get());
         }
     }
 
+    /**
+     * Create a new builder for creating an advanced writer.
+     *
+     * @return The new builder.
+     */
     public static Builder create() {
         return new Builder();
     }

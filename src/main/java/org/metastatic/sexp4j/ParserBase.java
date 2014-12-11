@@ -1,10 +1,15 @@
 package org.metastatic.sexp4j;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.LinkedList;
 
+/**
+ * Base adapter class for turning a {@link org.metastatic.sexp4j.StreamingParser}
+ * into a {@link org.metastatic.sexp4j.Parser}.
+ */
 public abstract class ParserBase implements Parser {
     private Optional<Expression> root = Optional.absent();
     private final LinkedList<ExpressionList> stack = new LinkedList<>();
@@ -47,11 +52,19 @@ public abstract class ParserBase implements Parser {
         }
     }
 
+    /**
+     * Create a new parser adapter.
+     *
+     * @param parser The streaming parser.
+     * @throws java.lang.NullPointerException If the argument is null.
+     */
     protected ParserBase(StreamingParser parser) {
+        Preconditions.checkNotNull(parser);
         stream = parser;
         stream.addCallback(new Callback());
     }
 
+    @Override
     public Expression parse() throws IOException {
         stream.parse();
         return root.orNull();

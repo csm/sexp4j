@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
+import com.google.common.annotations.Beta;
 import org.metastatic.sexp4j.Atom;
 import org.metastatic.sexp4j.Expression;
 import org.metastatic.sexp4j.ExpressionList;
@@ -56,6 +57,7 @@ import org.metastatic.sexp4j.ExpressionList;
    map (m submaps [z] #01#))
  * </pre>
  */
+@Beta
 public class SimpleMapper {
     public static enum Type {
         Null((byte) 'n'),

@@ -1,5 +1,6 @@
 package org.metastatic.sexp4j.mapper;
 
+import com.google.common.annotations.Beta;
 import org.metastatic.sexp4j.*;
 
 import java.lang.reflect.*;
@@ -10,6 +11,7 @@ import java.util.*;
 /**
  * Created by cmarshall on 12/4/14.
  */
+@Beta
 public class ObjectMapper {
 
     private interface ValueSetter {

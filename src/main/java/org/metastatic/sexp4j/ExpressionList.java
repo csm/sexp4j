@@ -2,25 +2,52 @@ package org.metastatic.sexp4j;
 
 import java.util.*;
 
+/**
+ * A list of simpler expressions.
+ */
 public class ExpressionList extends AbstractList<Expression> implements Expression
 {
     private final List<Expression> expressions;
 
+    /**
+     * Create a new, empty expression list.
+     */
     public ExpressionList()
     {
         this.expressions = new ArrayList<>();
     }
 
+    /**
+     * Create a new, empty expression list, with the given initial capacity.
+     *
+     * @param capacity The list capacity.
+     * @throws java.lang.IllegalArgumentException If the capacity is negative.
+     */
     public ExpressionList(int capacity) {
         this.expressions = new ArrayList<>(capacity);
     }
 
+    /**
+     * Create a new, empty expression list, using the given list class as
+     * the underlying list representation.
+     *
+     * @param listClass The list implementation class; this class must provide
+     *                  a zero-argument constructor.
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
     public ExpressionList(Class<? extends List<Expression>> listClass)
             throws IllegalAccessException, InstantiationException
     {
         this.expressions = listClass.newInstance();
     }
 
+    /**
+     * Create a new expression list containing the given expressions.
+     *
+     * @param expressions The expressions to add to the new list.
+     * @return The new list.
+     */
     public static ExpressionList list(Expression... expressions) {
         ExpressionList list = new ExpressionList();
         Collections.addAll(list, expressions);

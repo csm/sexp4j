@@ -13,17 +13,31 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.apache.commons.codec.binary.Base64;
 
+/**
+ * An atom; that is, a sequence of bytes, with an optional display hint.
+ */
 public class Atom implements Cloneable, Expression
 {
     private final byte[] bytes;
     private final Optional<DisplayHint> displayHint;
 
+    /**
+     * Create an atom with the given bytes.
+     *
+     * @param bytes The atom bytes; this value is copied.
+     * @throws java.lang.NullPointerException If the argument is null.
+     */
     public Atom(byte[] bytes) {
         Preconditions.checkNotNull(bytes);
         this.bytes = bytes.clone();
         displayHint = Optional.absent();
     }
 
+    /**
+     * @param code
+     * @param bytes
+     */
+    @Deprecated
     public Atom(byte code, byte[] bytes) {
         Preconditions.checkNotNull(bytes);
         this.bytes = new byte[bytes.length + 1];
@@ -32,9 +46,18 @@ public class Atom implements Cloneable, Expression
         displayHint = Optional.absent();
     }
 
+    /**
+     * Create an atom with a subsequence of a byte array.
+     *
+     * @param bytes The byte array.
+     * @param offset The offset of the bytes to read.
+     * @param length The number of bytes to read.
+     * @throws java.lang.IllegalArgumentException If the offset is negative, or if the offset plus the length is larger than the number of bytes in the array.
+     * @throws java.lang.NullPointerException If the byte array is null.
+     */
     public Atom(byte[] bytes, int offset, int length) {
         Preconditions.checkNotNull(bytes);
-        Preconditions.checkArgument(offset > 0);
+        Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(offset + length <= bytes.length);
         this.bytes = new byte[length];
         System.arraycopy(bytes, offset, this.bytes, 0, length);
@@ -46,6 +69,12 @@ public class Atom implements Cloneable, Expression
         this.displayHint = Optional.of(hint);
     }
 
+    /**
+     * Create an atom with the given bytes.
+     *
+     * @param bytes The byte array.
+     * @return The new atom.
+     */
     public static Atom atom(byte[] bytes) {
         return new Atom(bytes);
     }
@@ -114,10 +143,23 @@ public class Atom implements Cloneable, Expression
         return new Atom(Primitives.bytes(value, order));
     }
 
+    /**
+     * Return this atom as a byte.
+     *
+     * @return The byte value.
+     * @throws java.lang.IllegalStateException If this atom is not one byte long.
+     */
     public byte byteValue() {
         return byteValue(0);
     }
 
+    /**
+     * Return this atom as a byte, after some prefix.
+     *
+     * @param offset The length of the prefix.
+     * @return The byte value.
+     * @throws java.lang.IllegalStateException If this atom, after the prefix, is not one byte long.
+     */
     public byte byteValue(int offset) {
         Preconditions.checkState((bytes.length - offset) == 1);
         return bytes[offset];
@@ -203,34 +245,68 @@ public class Atom implements Cloneable, Expression
         return new BigDecimal(stringValue(offset));
     }
 
+    /**
+     * Return this atom, with the given string as a display hint.
+     *
+     * @param displayHint The display hint string.
+     * @return The new atom.
+     */
     public Atom withHint(String displayHint) {
         return new Atom(bytes, new DisplayHint(displayHint));
     }
 
+    /**
+     * Return this atom, with the given atom as a display hint.
+     *
+     * @param displayHint The display hint atom.
+     * @return The new atom.
+     * @throws java.lang.IllegalArgumentException If the argument is this instance, or if the given atom has it's own display hint.
+     */
     public Atom withHint(Atom displayHint) {
+        Preconditions.checkArgument(displayHint != this);
         Preconditions.checkArgument(!displayHint.displayHint().isPresent(), "Recursive display hints not admissible");
         return new Atom(bytes, new DisplayHint(displayHint));
     }
 
+    /**
+     * Return this atom, with the given byte as a display hint.
+     *
+     * @param displayHint The display hint.
+     * @return This atom, with the given byte as the display hint.
+     */
     public Atom withHint(byte displayHint) {
         return new Atom(bytes, new DisplayHint(atom(displayHint)));
     }
 
+    /**
+     * Fetch the display hint, or an absent value if not set.
+     *
+     * @return The display hint.
+     */
     public Optional<DisplayHint> displayHint() {
         return displayHint;
     }
 
+    @Deprecated
     public byte typeCode() {
         return bytes[0];
     }
 
-    public int length()
-    {
+    /**
+     * Return the length of this atom, in bytes.
+     *
+     * @return The length of this atom.
+     */
+    public int length() {
         return bytes.length;
     }
 
-    public byte[] bytes()
-    {
+    /**
+     * Return a copy of this atom's bytes.
+     *
+     * @return The atom bytes.
+     */
+    public byte[] bytes() {
         return bytes.clone();
     }
 
@@ -240,11 +316,32 @@ public class Atom implements Cloneable, Expression
         return b;
     }
 
+    /**
+     * Write a subsequence of this atom to the given output stream.
+     *
+     * @param out The output stream.
+     * @param offset The offset of the bytes to write.
+     * @param length The number of bytes to write.
+     * @throws java.io.IOException If an IO exception occurs.
+     * @throws java.lang.NullPointerException If the parameter out is null.
+     * @throws java.lang.IllegalArgumentException If the offset is negative, or if the offset plus length is larger than this atom.
+     */
     public void writeTo(OutputStream out, int offset, int length) throws IOException {
+        Preconditions.checkNotNull(out);
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(offset + length <= bytes.length);
         out.write(bytes, offset, length);
     }
 
+    /**
+     * Write this atom to the given output stream.
+     *
+     * @param out The output stream.
+     * @throws java.io.IOException If an IO exception occurs.
+     * @throws java.lang.NullPointerException If the parameter is null.
+     */
     public void writeTo(OutputStream out) throws IOException {
+        Preconditions.checkNotNull(out);
         out.write(bytes);
     }
 
@@ -261,6 +358,12 @@ public class Atom implements Cloneable, Expression
         quotedStringChars.set('#', '~' + 1);
     }
 
+    /**
+     * Tell if this atom can be encoded as a symbol; that is, only
+     * contains alphanumeric characters.
+     *
+     * @return True if this may be encoded as a symbol.
+     */
     public boolean canBeSymbol() {
         if (bytes.length == 0)
             return false;
@@ -271,6 +374,11 @@ public class Atom implements Cloneable, Expression
         return true;
     }
 
+    /**
+     * Tell if this atom can be encoded as a quoted string.
+     *
+     * @return True if this may be encoded as a quoted string.
+     */
     public boolean canBeQuotedString() {
         for (byte b : bytes) {
             if (!quotedStringChars.get(b & 0xff))
@@ -286,6 +394,12 @@ public class Atom implements Cloneable, Expression
         return (byte) ('a' + (i - 10));
     }
 
+    /**
+     * Return the value of this atom, encoded as a byte array of
+     * hexadecimal ASCII characters.
+     *
+     * @return The hex representation.
+     */
     public byte[] asHexBytes() {
         byte[] result = new byte[bytes.length * 2];
         int i = 0;
@@ -297,13 +411,17 @@ public class Atom implements Cloneable, Expression
         return result;
     }
 
+    /**
+     * Return the value of this atom, encoded in base-64.
+     *
+     * @return The base 64 representation.
+     */
     public byte[] asBase64Bytes() {
         return Base64.encodeBase64(bytes);
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return Arrays.hashCode(bytes);
     }
 

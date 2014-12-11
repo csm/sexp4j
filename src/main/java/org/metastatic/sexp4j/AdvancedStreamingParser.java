@@ -11,7 +11,7 @@ import java.util.BitSet;
 import java.util.LinkedList;
 
 /**
- * Created by cmarshall on 12/5/14.
+ * A streaming parser for the "advanced" encoding.
  */
 public class AdvancedStreamingParser extends StreamingParser {
     private static enum State {

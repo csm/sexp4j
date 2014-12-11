@@ -6,10 +6,17 @@ import java.io.InputStream;
 import com.google.common.base.Optional;
 import com.google.common.io.ByteStreams;
 
+/**
+ * A streaming parser for the canonical encoding.
+ */
 public class CanonicalStreamingParser extends StreamingParser
 {
     private byte[] displayHint = null;
 
+    /**
+     * Create a new canonical streaming parser.
+     * @param input
+     */
     public CanonicalStreamingParser(InputStream input)
     {
         super(input);

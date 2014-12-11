@@ -6,6 +6,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
+/**
+ * Utility methods for transforming primitives to and from byte array representations.
+ */
 public class Primitives {
     public static byte[] bytes(String string, Charset charset) {
         return string.getBytes(charset);

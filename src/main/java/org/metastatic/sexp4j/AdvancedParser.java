@@ -3,7 +3,7 @@ package org.metastatic.sexp4j;
 import java.io.InputStream;
 
 /**
- * Created by cmarshall on 12/5/14.
+ * A parser for the "advanced" encoding.
  */
 public class AdvancedParser extends ParserBase {
     public AdvancedParser(InputStream in) {
