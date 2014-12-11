@@ -58,3 +58,8 @@ Some examples:
     long 4294967296 -> [l]#00000100000000#
     float 3.141 -> [f]#40490625#
     double 2.718281828459045 -> [d]#4005bf0a8b145769#
+    BigInteger googol -> [I]|EkmtJZTDfOsLJ4TEzgvzis5AjiEafKqyQwioLo8QAAAAAAAAAAAAAAAA|
+    BigDecimal 2.718281828459045 -> [D]"2.718281828459045"
+    List -> ("l" [s]"some" [s]"elements" [s]"follow")
+    Set -> ("s" [s]"looks" [s]"similar")
+    Map -> ("m" "maps" [s]"are lists" "of" [s]"pairs")
