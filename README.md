@@ -7,6 +7,8 @@
 This package implements Ron Rivest's [s-expression](http://people.csail.mit.edu/rivest/Sexp.txt)
 format. It also provides some useful ways to use this format for serializing Java objects.
 
+[API Documentation](https://csm.github.io/sexp4j/javadoc/)
+
 # Rationale
 
 JSON is great. It's a simple, readable format that encodes basic objects very well; it's somewhat compact, and somewhat fast to parse. It's implemented in any language you can think of. For a ton of uses, JSON is the perfect answer.
