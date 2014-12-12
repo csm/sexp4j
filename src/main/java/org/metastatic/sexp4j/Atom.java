@@ -57,8 +57,7 @@ public class Atom implements Cloneable, Expression
      */
     public Atom(byte[] bytes, int offset, int length) {
         Preconditions.checkNotNull(bytes);
-        Preconditions.checkArgument(offset >= 0);
-        Preconditions.checkArgument(offset + length <= bytes.length);
+        Preconditions.checkPositionIndexes(offset, offset + length, bytes.length);
         this.bytes = new byte[length];
         System.arraycopy(bytes, offset, this.bytes, 0, length);
         displayHint = Optional.absent();
@@ -79,27 +78,74 @@ public class Atom implements Cloneable, Expression
         return new Atom(bytes);
     }
 
+    /**
+     * Create an atom with the given subarray.
+     *
+     * @param bytes The byte array.
+     * @param offset The offset of the bytes to read.
+     * @param length The number of bytes to read.
+     * @return The new atom.
+     */
     public static Atom atom(byte[] bytes, int offset, int length) {
         return new Atom(bytes, offset, length);
     }
 
+    /**
+     * Create an atom with the given string and charset.
+     *
+     * @param string The string.
+     * @param charset The charset to encode the string into bytes.
+     * @throws java.lang.NullPointerException If either argument is null.
+     * @return The new atom.
+     */
     public static Atom atom(String string, Charset charset) {
+        Preconditions.checkNotNull(string);
+        Preconditions.checkNotNull(charset);
         return new Atom(string.getBytes(charset));
     }
 
+    /**
+     * Create an atom with the given string, using UTF-8.
+     *
+     * @param string The string.
+     * @return The new atom.
+     * @throws java.lang.NullPointerException If the argument is null.
+     */
     public static Atom atom(String string) {
         return atom(string, Charset.forName("UTF-8"));
     }
 
+    /**
+     * Create an atom with the given byte value.
+     *
+     * @param value The byte.
+     * @return The new atom.
+     */
     public static Atom atom(byte value) {
         return new Atom(new byte[] { value });
     }
 
+    /**
+     * Create an atom with the given char value. The atom will contain
+     * two bytes, in big-endian order.
+     *
+     * @param value The char.
+     * @return The new atom.
+     */
     public static Atom atom(char value) {
         return atom((short) value);
     }
 
+    /**
+     * Create an atom with the given char value. The atom will contain
+     * two bytes, in the given byte order.
+     *
+     * @param value The char.
+     * @param order The byte order.
+     * @return The new item.
+     */
     public static Atom atom(char value, ByteOrder order) {
+        Preconditions.checkNotNull(order);
         return atom((short) value, order);
     }
 
@@ -165,82 +211,374 @@ public class Atom implements Cloneable, Expression
         return bytes[offset];
     }
 
+    /**
+     * Return this atom as a char.
+     *
+     * @return The char value.
+     * @throws java.lang.IllegalStateException If the length of this atom is not two bytes.
+     */
     public char charValue() {
         return charValue(0);
     }
 
+    /**
+     * Return this atom as a char, given a prefix and big endian byte order.
+     *
+     * @param offset The prefix length.
+     * @return The char value.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not two bytes.
+     */
     public char charValue(int offset) {
-        Preconditions.checkState((bytes.length - offset) == 2);
-        return Primitives.toChar(bytes, offset);
+        return charValue(offset, ByteOrder.BIG_ENDIAN);
     }
 
+    /**
+     * Return this atom as a char, given a byte order.
+     *
+     * @param order The byte order.
+     * @return The char value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom is not two bytes.
+     */
+    public char charValue(ByteOrder order) {
+        return charValue(0, order);
+    }
+
+    /**
+     * Return this atom as a char, given a prefix and byte order.
+     *
+     * @param offset The prefix length.
+     * @param order The byte order.
+     * @return The char value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not two bytes.
+     */
+    public char charValue(int offset, ByteOrder order) {
+        Preconditions.checkNotNull(order);
+        Preconditions.checkState((bytes.length - offset) == 2);
+        return Primitives.toChar(bytes, offset, order);
+    }
+
+    /**
+     * Return this atom as a short.
+     *
+     * @return The short value.
+     * @throws java.lang.IllegalStateException If the length of this atom is not two bytes.
+     */
     public short shortValue() {
         return shortValue(0);
     }
 
+    /**
+     * Return this atom as a short, given a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The short value.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not two bytes.
+     */
     public short shortValue(int offset) {
-        Preconditions.checkState((bytes.length - offset) == 2);
-        return Primitives.toShort(bytes, offset);
+        return shortValue(offset, ByteOrder.BIG_ENDIAN);
     }
 
+    /**
+     * Return this atom as a short, given a byte order.
+     *
+     * @param order The byte order.
+     * @return The short value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom is not two bytes.
+     */
+    public short shortValue(ByteOrder order) {
+        return shortValue(0, order);
+    }
+
+    /**
+     * Return this atom as a short, given a prefix and byte order.
+     *
+     * @param offset The prefix length.
+     * @param order The byte order.
+     * @return The short value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not two bytes.
+     */
+    public short shortValue(int offset, ByteOrder order) {
+        Preconditions.checkState((bytes.length - offset) == 2);
+        Preconditions.checkNotNull(order);
+        return Primitives.toShort(bytes, offset, order);
+    }
+
+    /**
+     * Return this atom as a int.
+     *
+     * @return The int value.
+     * @throws java.lang.IllegalStateException If the length of this atom is not four bytes.
+     */
     public int intValue() {
         return intValue(0);
     }
 
+    /**
+     * Return this atom as a int, given a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The int value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not four bytes.
+     */
     public int intValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == 4);
-        return Primitives.toInt(bytes, offset);
+        return intValue(offset, ByteOrder.BIG_ENDIAN);
     }
 
+    /**
+     * Return this atom as a int, given a byte order.
+     *
+     * @param order The byte order.
+     * @return The int value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom is not four bytes.
+     */
+    public int intValue(ByteOrder order) {
+        return intValue(0, order);
+    }
+
+    /**
+     * Return this atom as a int, given a prefix and byte order.
+     *
+     * @param offset The prefix length.
+     * @param order The byte order.
+     * @return The int value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not four bytes.
+     */
+    public int intValue(int offset, ByteOrder order) {
+        Preconditions.checkState(bytes.length - offset != 4);
+        Preconditions.checkNotNull(order);
+        return Primitives.toInt(bytes, offset, order);
+    }
+
+    /**
+     * Return this atom as a long.
+     *
+     * @return The long value.
+     * @throws java.lang.IllegalStateException If the length of this atom is not eight bytes.
+     */
     public long longValue() {
         return longValue(0);
     }
 
+    /**
+     * Return this atom as a long, given a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The long value.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not eight bytes.
+     */
     public long longValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == 8);
-        return Primitives.toLong(bytes, offset);
+        return longValue(offset, ByteOrder.BIG_ENDIAN);
     }
 
+    /**
+     * Return this atom as a long, given a byte order.
+     *
+     * @param order The byte order.
+     * @return The long value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom is not eight bytes.
+     */
+    public long longValue(ByteOrder order) {
+        return longValue(0, order);
+    }
+
+    /**
+     * Return this atom as a long, given a prefix and byte order.
+     *
+     * @param offset The prefix length.
+     * @param order The byte order.
+     * @return The long value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not eight bytes.
+     */
+    public long longValue(int offset, ByteOrder order) {
+        Preconditions.checkState(bytes.length - offset != 8);
+        Preconditions.checkNotNull(order);
+        return Primitives.toLong(bytes, offset, order);
+    }
+
+    /**
+     * Return this atom as a float.
+     *
+     * @return The float value.
+     * @throws java.lang.IllegalStateException If the length of this atom is not four bytes.
+     */
     public float floatValue() {
         return floatValue(0);
     }
 
+    /**
+     * Return this atom as a float, given a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The float value.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not four bytes.
+     */
     public float floatValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == 4);
-        return Primitives.toFloat(bytes, offset);
+        return floatValue(offset, ByteOrder.BIG_ENDIAN);
     }
 
+    /**
+     * Return this atom as a float, given a byte order.
+     *
+     * @param order The byte order.
+     * @return The float value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom is not four bytes.
+     */
+    public float floatValue(ByteOrder order) {
+        return floatValue(0, order);
+    }
+
+    /**
+     * Return this atom as a float, given a prefix and byte order.
+     *
+     * @param offset The prefix length.
+     * @param order The byte order.
+     * @return The float value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not four bytes.
+     */
+    public float floatValue(int offset, ByteOrder order) {
+        return Primitives.toFloat(bytes, offset, order);
+    }
+
+    /**
+     * Return this atom as a double.
+     *
+     * @return The double value.
+     * @throws java.lang.IllegalStateException If the length of this atom is not eight bytes.
+     */
     public double doubleValue() {
         return doubleValue(0);
     }
 
+    /**
+     * Return this atom as a double, given a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The double value.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not eight bytes.
+     */
     public double doubleValue(int offset) {
-        Preconditions.checkState(bytes.length - offset == 8);
-        return Primitives.toDouble(bytes, offset);
+        return doubleValue(offset, ByteOrder.BIG_ENDIAN);
     }
 
+    /**
+     * Return this atom as a double, given a byte order.
+     *
+     * @param order The byte order.
+     * @return The double value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom is not eight bytes.
+     */
+    public double doubleValue(ByteOrder order) {
+        return doubleValue(0, order);
+    }
+
+    /**
+     * Return this atom as a double, given a prefix and byte order.
+     *
+     * @param offset The prefix length.
+     * @param order The byte order.
+     * @return The double value.
+     * @throws java.lang.NullPointerException If the {@code order} is null.
+     * @throws java.lang.IllegalStateException If the length of this atom, minus the prefix length, is not eight bytes.
+     */
+    public double doubleValue(int offset, ByteOrder order) {
+        Preconditions.checkState(bytes.length - offset != 8);
+        Preconditions.checkNotNull(order);
+        return Primitives.toDouble(bytes, offset, order);
+    }
+
+    /**
+     * Return this atom as a string, using UTF-8 to decode the bytes.
+     *
+     * @return The string.
+     */
     public String stringValue() {
         return new String(bytes, Charset.forName("UTF-8"));
     }
 
+    /**
+     * Return this atom as a string, discarding a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The string.
+     */
     public String stringValue(int offset) {
+        Preconditions.checkPositionIndex(offset, bytes.length);
         return new String(bytes, offset, bytes.length - offset, Charset.forName("UTF-8"));
     }
 
+    /**
+     * Return this atom as a string, using the given charset, and discarding a prefix.
+     *
+     * @param offset The prefix length.
+     * @param charset The charset.
+     * @return The string.
+     */
+    public String stringValue(int offset, Charset charset) {
+        Preconditions.checkPositionIndex(offset, bytes.length);
+        Preconditions.checkNotNull(charset);
+        return new String(bytes, offset, bytes.length - offset, charset);
+    }
+
+    /**
+     * Return this atom as a string, using the given charset.
+     *
+     * @param charset The charset.
+     * @return The string.
+     */
+    public String stringValue(Charset charset) {
+        Preconditions.checkNotNull(charset);
+        return new String(bytes, charset);
+    }
+
+    /**
+     * Return this atom as a big integer.
+     *
+     * @return The big integer.
+     */
     public BigInteger bigIntegerValue() {
         return new BigInteger(bytes);
     }
 
+    /**
+     * Return this atom as a big integer, discarding a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The big integer.
+     */
     public BigInteger bigIntegerValue(int offset) {
+        Preconditions.checkPositionIndex(offset, bytes.length);
         byte[] b = new byte[bytes.length - offset];
         System.arraycopy(bytes, offset, b, 0, b.length);
         return new BigInteger(b);
     }
 
+    /**
+     * Return this atom as a big decimal.
+     *
+     * @return The big decimal.
+     */
     public BigDecimal bigDecimalValue() {
         return new BigDecimal(stringValue());
     }
 
+    /**
+     * Return this atom as a big decimal, discarding a prefix.
+     *
+     * @param offset The prefix length.
+     * @return The big decimal.
+     */
     public BigDecimal bigDecimalValue(int offset) {
         return new BigDecimal(stringValue(offset));
     }
